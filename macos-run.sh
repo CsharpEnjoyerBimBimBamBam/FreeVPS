@@ -1,10 +1,12 @@
 #!/bin/bash
 # macos-run.sh MAC_USER_PASSWORD VNC_PASSWORD NGROK_AUTH_TOKEN MAC_REALNAME
 
-# disable spotlight indexing
+echo "Starting MacOS setup..."
+
+# Disable Spotlight indexing
 sudo mdutil -i off -a
 
-# Create new account
+# Create new user
 sudo dscl . -create /Users/koolisw
 sudo dscl . -create /Users/koolisw UserShell /bin/bash
 sudo dscl . -create /Users/koolisw RealName "$4"
@@ -16,12 +18,13 @@ sudo dscl . -passwd /Users/koolisw "$1"
 sudo createhomedir -c -u koolisw > /dev/null
 sudo dscl . -append /Groups/admin GroupMembership koolisw
 
-# Enable VNC
+# Enable VNC / Remote Management
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
   -configure -allowAccessFor -allUsers -privs -all
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
   -configure -clientopts -setvnclegacy -vnclegacy yes
 
+# Set VNC password
 echo "$2" | perl -we '
   BEGIN { @k = unpack "C*", pack "H*", "1734516E8BA8C5E2FF1C39567390ADCA"};
   $_ = <>;
@@ -36,25 +39,20 @@ echo "$2" | perl -we '
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -restart -agent -console
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate
 
-# Install ngrok v2 manually (brew gives v3, which breaks tcp mode)
+# Install ngrok v2 manually (v3 from brew breaks tcp mode)
+echo "Installing ngrok v2..."
 curl -sSL https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-darwin-amd64.zip -o ngrok.zip
 unzip ngrok.zip
 chmod +x ngrok
 sudo mv ngrok /usr/local/bin/ngrok
 rm ngrok.zip
 
-# Configure and start ngrok
+# Configure ngrok
 ngrok authtoken "$3"
+
+# Start ngrok TCP in background
+echo "Starting ngrok TCP tunnel..."
 ngrok tcp 5900 --region=ap > ngrok.log 2>&1 &
 
-# Wait for ngrok to be ready (web interface on 4040)
-echo "Waiting for ngrok to start..."
-for i in {1..20}; do
-  if curl --silent http://127.0.0.1:4040/api/tunnels >/dev/null 2>&1; then
-    break
-  fi
-  sleep 1
-done
-
-# Show ngrok public URL
-curl --silent http://127.0.0.1:4040/api/tunnels | jq '.tunnels[0].public_url'
+echo "Ngrok started in background. Logs and public TCP URL are available in ngrok.log"
+echo "Setup complete!"
