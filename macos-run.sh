@@ -39,7 +39,7 @@ echo "$2" | perl -we '
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -restart -agent -console
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate
 
-# Install ngrok v2 manually (v3 from brew breaks tcp mode)
+# Install ngrok v2 manually (brew gives v3, which breaks tcp mode)
 echo "Installing ngrok v2..."
 curl -sSL https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-darwin-amd64.zip -o ngrok.zip
 unzip ngrok.zip
