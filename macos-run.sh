@@ -26,7 +26,11 @@ sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resourc
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate
 
 #install ngrok
-brew install --cask ngrok
+curl -sSL https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-darwin-amd64.zip -o ngrok.zip
+unzip ngrok.zip
+chmod +x ngrok
+sudo mv ngrok /usr/local/bin/ngrok
+rm ngrok.zip
 
 #configure ngrok and start it
 ngrok authtoken $3
